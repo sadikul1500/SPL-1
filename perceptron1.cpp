@@ -3,6 +3,7 @@
 #include<ctime>
 #include<cmath>
 
+
 using namespace std;
 
 void initializeWeights(double* weight,int column)
