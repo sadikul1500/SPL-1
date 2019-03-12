@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Feb 26 10:01:07 2019
-
 @author: sadikul
 """
 
@@ -88,18 +87,18 @@ def rnn_backward(y, parameters, cache):
         gradients['d' + parameters_name] = np.zeros_like(parameters[parameters_name])
 
 
-    for t in reversed(range(len(input_one_hot))):
+    for t in range(len(input_one_hot) -1, -1, -1):
         dy = np.copy(output_one_hot[t])
-        dy[y[t]] -= 1
-        gradients['dWhy'] += dy.dot(hidden_state[t].T)
-        gradients['dby'] += dy
+        dy[y[t]] -= 1           #dl / dy
+        gradients['dWhy'] += dy.dot(hidden_state[t].T)   #dl / dWhy
+        gradients['dby'] += dy             #dl / dby
 
-        dh = parameters['Why'].T.dot(dy) + dh_next
+        dh = parameters['Why'].T.dot(dy) + dh_next  #dl / dh[t]
         d_tanh = (1 - hidden_state[t] ** 2) * dh
 
-        gradients['dWhh'] += d_tanh.dot(hidden_state[t - 1].T)
-        gradients['dWxh'] += d_tanh.dot(input_one_hot[t].T)
-        gradients['dbh'] += d_tanh
+        gradients['dWhh'] += d_tanh.dot(hidden_state[t - 1].T)        #dl / dWhh
+        gradients['dWxh'] += d_tanh.dot(input_one_hot[t].T)           #dl / dWxh
+        gradients['dbh'] += d_tanh                                    #dl / dbh
         dh_next = parameters['Whh'].T.dot(d_tanh)
 
     h_previous = hidden_state[len(input_one_hot) - 1]
@@ -224,9 +223,16 @@ def sample(parameters, h_previous, position, n):
         h = TANH(Whh.dot(h_previous) + Wxh.dot(x) + bh)
         z = Why.dot(h) + by
         y = softmax(z)
+        #print(y)
 
+        #np.random.seed(counter + 0)
+        #print(type(y), "  ", y.shape," ", y.ravel().shape)
         index = np.random.choice(list(range(vocabulary_size)), p=y.ravel())
+
+
+
         indices.append(index)
+        #print(index)
 
         x = np.zeros((n_x, 1))
         x[index] = 1
@@ -250,7 +256,7 @@ def rnn_forward_backward(x, y, h_previous, parameters, m_parameters):
 
     parameters, m_parameters = update_parameters_adagrad(parameters, gradients, m_parameters)
 
-    return loss, gradients, h[len(x) - 1], parameters
+    return loss, gradients, h, parameters
 
 
 def print_sample(index, index_to_chars):
@@ -302,12 +308,11 @@ def train_dataset(data, index_to_chars, char_to_index, number_of_iteration, num_
         x = [char_to_index[ch] for ch in data[p:p + number_of_rnn_unit]]
         y = [char_to_index[ch] for ch in data[p + 1:p + number_of_rnn_unit + 1]]
 
-        current_loss, gradients, h_prev, parameters = rnn_forward_backward(x, y, h_previous, parameters, m_parameters)
-
+        current_loss, gradients, h_previous, parameters = rnn_forward_backward(x, y, h_previous, parameters, m_parameters)
 
         loss = loss * .999 + current_loss * .001  # smooth loss
 
-        if iter % 1000 == 0 :
+        if iter % 1000 == 0:
 
             print('iteration: ', iter)
             print('loss: ', loss)
@@ -318,7 +323,47 @@ def train_dataset(data, index_to_chars, char_to_index, number_of_iteration, num_
 
         p += number_of_rnn_unit
 
-    return parameters
+    return parameters, h_previous
+
+
+def generate_chars(parameters, h_previous, x):
+
+    Whh, Wxh, Why, bh, by = parameters['Whh'], parameters['Wxh'], parameters['Why'], parameters['bh'], parameters['by']
+    n_h, n_x = Wxh.shape
+    vocabulary_size = by.shape[0]
+
+    inputs = np.zeros((n_x, 1), dtype=float)
+    inputs[x[0]] = 1     # one hot vector x for 1st character
+
+    counter = 0
+    index = x[0]
+    indices = [index]
+
+    while (counter < 10 and index != char_to_index['\n'] ):
+
+        h = TANH(Whh.dot(h_previous) + Wxh.dot(inputs) + bh)
+        z = Why.dot(h) + by
+        y = softmax(z)
+
+        if(counter + 1 < len(x)):
+            index = x[counter + 1]
+
+        else:
+            index = np.random.choice(list(range(vocabulary_size)), p=y.ravel())
+
+
+        indices.append(index)
+        #print(index)
+
+        inputs = np.zeros((n_x, 1))
+        inputs[index] = 1
+        h_previous = h
+
+        counter += 1
+
+
+    return indices
+
 
 
 if __name__ == '__main__':
@@ -340,11 +385,22 @@ if __name__ == '__main__':
         index_to_chars[i] = chars[i]  # (0 : '\n')
 
     for i, ch in index_to_chars.items():
-        char_to_index[ch] = i
+        char_to_index[ch] = i        # ('\n' : 0)
 
 
     num_of_neuron = 100
     learning_rate = .01
 
-    parameters = train_dataset(input_data, index_to_chars, char_to_index, 90000, num_of_neuron, learning_rate,
+    parameters, h_0 = train_dataset(name, index_to_chars, char_to_index, 90001, num_of_neuron, learning_rate,
                        vocabulary_size)
+
+    indices = []
+
+    '''now give a few characters to see 
+    what word the model predicts'''
+    for i in range(10):
+       input_text = input("enter a chunk of sequence : ")
+       x = [char_to_index[ch] for ch in input_text]
+
+       indices = generate_chars(parameters, h_0, x)
+       print_sample(indices, index_to_chars)
