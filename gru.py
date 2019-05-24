@@ -27,8 +27,7 @@ for i, ch in index_to_chars.items():
 number_of_neuron = 100
 T_steps = 25
 weight_sd = .2
-#r_size = number_of_neuron + vocabulary_size
-#z_size = r_size * 2
+
 learning_rate = .01
 
 #weight parameters initialize randomly
@@ -244,6 +243,36 @@ def update_parameter_adagrad(m_parameters, m_biases, gradients, d_biases):
     return m_parameters, m_biases
 
 
+def update_parameter_rmsprop(m_parameters, m_biases, gradients, d_biases):
+
+    global parameters, biases
+    epsilon = 1.0e-8
+    decay_rate = .9
+
+    # m_Why = decay_rate * m_Why + (1 - decay_rate) * (dWhy ** 2)
+    # Why -= .01 * dWhy / (np.sqrt(m_Why) + epsilon)
+
+    for p, m, g in zip([parameters['W_r'], parameters['W_C'], parameters['W_u'], parameters['W_y'], parameters['U_r'], parameters['U_C'], parameters['U_u']],
+                       [m_parameters['m_W_r'], m_parameters['m_W_C'], m_parameters['m_W_u'], m_parameters['m_W_y'],
+                        m_parameters['m_U_r'], m_parameters['m_U_C'], m_parameters['m_U_u']],
+                       [gradients['d_W_r'], gradients['d_W_C'], gradients['d_W_u'], gradients['d_W_y'],
+                        gradients['d_U_r'], gradients['d_U_C'], gradients['d_U_u']]):
+
+        m += decay_rate * m + (1 - decay_rate) * (g ** 2)
+        p -= -learning_rate * g / (np.sqrt(m) + epsilon)
+
+    for b_p, b_m, b_d in zip([biases['b_r'], biases['b_C'], biases['b_u'], biases['b_y']],
+                             [m_biases['m_b_r'], m_biases['m_b_C'], m_biases['m_b_u'], m_biases['m_b_y'],
+                              ],
+                             [d_biases['d_b_r'], d_biases['d_b_C'], d_biases['d_b_u'], d_biases['d_b_y']
+                              ]):
+
+        b_m -= decay_rate * b_m + (1 - decay_rate) * (b_d ** 2)
+        b_p -= learning_rate * b_d / (np.sqrt(b_m) + epsilon)
+
+    return m_parameters, m_biases
+
+
 
 def sample(C_previous, position, n):
 
@@ -295,7 +324,7 @@ def gru_forward_backward(x, y, C_previous, m_parameters, m_biases):
     # print('yes')
 
     m_parameters, m_biases = update_parameter_adagrad(m_parameters, m_biases, gradients, d_biases)
-    # m_parameters, m_biases = update_parameter_rmsprop(gradients, d_biases, m_parameters, m_biases)
+    #m_parameters, m_biases = update_parameter_rmsprop(gradients, d_biases, m_parameters, m_biases)
 
     return loss, cell_state, gradients, d_biases
 
