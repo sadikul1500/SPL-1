@@ -266,6 +266,41 @@ def print_sample(index, index_to_chars):
 
 
 
+def gradient_check(input, y, h_previous, parameters, gradients):
+
+    delta = 1e-5
+    # retrieve parameters
+    Wxh = parameters['Wxh']
+    Whh = parameters['Whh']
+    Why = parameters['Why']
+    by = parameters['by']
+    bh = parameters['bh']
+
+    # retrieve gradients
+    dWxh = gradients['dWxh']
+    dWhh = gradients['dWhh']
+    dWhy = gradients['dWhy']
+    dby = gradients['dby']
+    dbh = gradients['dbh']
+
+    for x, dx in zip([Wxh, Whh, Why, by, bh], [dWxh, dWhh, dWhy, dby, dbh]):
+        for i in range(5):  #check a times if realative error is less than the tolerence value, here a = 5
+
+            position = int(np.random.uniform(0, x.size))
+            temp = x.flat[position]
+            x.flat[position] = temp + delta
+            y1, _ = rnn_forward(input, y, h_previous, parameters)
+            x.flat[position] = temp - delta
+            y2, _ = rnn_forward(input, y, h_previous, parameters)
+
+            x.flat[position] = temp
+            gradient_rnn = dx.flat[position]
+            gradient_numerical = (y1 - y2) / (2 * delta)   #gradient = del_y / del_x
+            relative_error = abs(gradient_numerical - gradient_rnn) / abs(gradient_numerical + gradient_rnn)
+
+            print("relative error: ", relative_error, '\n')
+
+
 
 def train_dataset(data, index_to_chars, char_to_index, number_of_iteration, num_of_neuron, learning_rate, vocabulary_size,
           ):
@@ -317,6 +352,8 @@ def train_dataset(data, index_to_chars, char_to_index, number_of_iteration, num_
             print('iteration: ', iter)
             print('loss: ', loss)
             print('\n')
+            if iter != 0:
+                gradient_check(x, y, h_previous, parameters, gradients)
             steps = 200
             sampled_indices = sample(parameters, h_previous, x[0], steps)
             print_sample(sampled_indices, index_to_chars)
