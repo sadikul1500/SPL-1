@@ -1,0 +1,47 @@
+https://towardsdatascience.com/neural-representation-of-logic-gates-df044ec922bc
+#image of SLP
+
+https://pythonmachinelearning.pro/perceptrons-the-first-neural-networks/
+#graph of gates
+
+https://aimatters.wordpress.com/2016/01/11/solving-xor-with-a-neural-network-in-python/
+#image of mlp
+
+http://karpathy.github.io/2015/05/21/rnn-effectiveness/
+#rnn1, rnn2
+
+https://towardsdatascience.com/recurrent-neural-networks-d4642c9bc7ce
+#rnn cell 
+
+https://medium.com/deep-math-machine-learning-ai/chapter-10-deepnlp-recurrent-neural-networks-with-math-c4a6846a50a2
+#forward calculation
+
+https://datascience-enthusiast.com/DL/Building_a_Recurrent_Neural_Network-Step_by_Step_v1.html
+#backProp2
+
+https://acadgild.com/blog/recurrent-neural-network-tutorial
+#backprop1
+
+http://songhuiming.github.io/pages/2017/08/20/build-recurrent-neural-network-from-scratch/
+#forward1
+
+https://www.slideshare.net/ssuser77b8c6/an-overview-of-gradient-descent-optimization-algorithms
+#rmsprop
+
+https://datascience-enthusiast.com/DL/Dinosaurus_Island_Character_level_language_model.html
+#sampling
+
+https://cdn-images-1.medium.com/max/800/1*0UPGYmbjVJf_FuntzHAtYQ.png
+#lstm cell
+
+https://hips.hearstapps.com/pop.h-cdn.co/assets/17/40/1280x800/gallery-1507309070-screen-shot-2017-10-06-at-125555-pm.png?resize=768:*
+#neural network
+
+https://cdn-images-1.medium.com/max/800/1*v88ySSMr7JLaIBjwr4chTw.jpeg
+#slp
+
+https://cdn-images-1.medium.com/max/1200/1*FWy4STsp8k0M5Yd8LifG_Q.png
+#vanishing gradient
+
+https://cdn-images-1.medium.com/max/800/1*XxxiA0jJvPrHEJHD4z893g.png
+#relu vs others
